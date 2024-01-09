@@ -38,7 +38,8 @@ class MyNode(Node):
 def main(args=None):
     rclpy.init(args=args)
     global my_chain
-    my_chain = ikpy.chain.Chain.from_urdf_file("simon-v2-0.urdf",active_links_mask=[False, False, True, True, True, True, True, True, True, True])
+    my_chain = ikpy.chain.Chain.from_urdf_file("simon-v2-0.urdf",active_links_mask=[False, False, True, True, True, True, True, False, False])
+    move(0, 0, 0.58, -1, 0, 0)
 
     pub = MyNode()
     rclpy.spin(pub)
