@@ -13,11 +13,11 @@ def doIK():
     old_position= ik.copy()
     ik = my_chain.inverse_kinematics(target_position, target_orientation, orientation_mode="Z", initial_position=old_position)
     
-def move(x,y,z, x2, y2, z2):
+def move(x,y,z):
     global target_position
     target_position = [x,y,z]
     global target_orientation
-    target_orientation = [x2, y2, z2]
+    target_orientation = [-1, 0, 0]
     doIK()
 
 class MyNode(Node):
@@ -39,7 +39,7 @@ def main(args=None):
     rclpy.init(args=args)
     global my_chain
     my_chain = ikpy.chain.Chain.from_urdf_file("simon-v2-0.urdf",active_links_mask=[False, False, True, True, True, True, True, False, False])
-    move(0, 0, 0.58, -1, 0, 0)
+    move(0, 0, 0.58)
 
     pub = MyNode()
     rclpy.spin(pub)
