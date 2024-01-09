@@ -1,22 +1,22 @@
+#!/usr/bin/env python3
 import ikpy.chain
 import ikpy.utils.plot as plot_utils
-
-import numpy as np
 import math
-
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
+import matplotlib as plt
+
+ik = None  # Define ik variable at a global level
 
 def doIK():
     global ik
-    old_position= ik.copy()
+    old_position = ik.copy() if ik is not None else None  # Handling the initial case
     ik = my_chain.inverse_kinematics(target_position, target_orientation, orientation_mode="Z", initial_position=old_position)
-    
-def move(x,y,z):
-    global target_position
-    target_position = [x,y,z]
-    global target_orientation
+
+def move(x, y, z):
+    global target_position, target_orientation
+    target_position = [x, y, z]
     target_orientation = [-1, 0, 0]
     doIK()
 
@@ -25,21 +25,28 @@ class MyNode(Node):
         super().__init__("Expected_Motor_Angles_publisher")
         self.publisher_ = self.create_publisher(String, 'expected_motor_angles', 10)
         self.timer = self.create_timer(5, self.timer_callback)
+        move(0,0.2,0.3)
 
     def timer_callback(self):
-        # message format: "X X X..." for each motor angle. Is ended with a new line
-        msg = String()
-        msg.data = str(list(map(lambda r:math.degrees(r), ik.tolist())))
-        msg.data += "\n"
-        self.publisher_.publish(msg)
-        self.get_logger().info('Publishing: "%s"' % msg.data)
+        global ik
+        if ik is not None:
+            self.get_logger().info("target pos: %s" % target_position)
+            msg = String()
+            msg.data = str(list(map(lambda r: math.degrees(r), ik.tolist())))
+            msg.data += "\n"
+            self.publisher_.publish(msg)
+            self.get_logger().info('Publishing: "%s"' % msg.data)
 
+            #testing forward kinematics
+            computed_pos = my_chain.forward_kinematics(ik)
+            self.get_logger().info("Computed position : %s" % ['%.2f' % elem for elem in computed_pos[:3, 3]])
 
 def main(args=None):
     rclpy.init(args=args)
     global my_chain
-    my_chain = ikpy.chain.Chain.from_urdf_file("simon-v2-0.urdf",active_links_mask=[False, False, True, True, True, True, True, False, False])
-    move(0, 0, 0.58)
+    my_chain = ikpy.chain.Chain.from_urdf_file("simon-v2-0.urdf", active_links_mask=[False, True, True, True, True, True, False, False])
+    global target_orientation
+    target_orientation = [-1, 0, 0]
 
     pub = MyNode()
     rclpy.spin(pub)
@@ -47,4 +54,4 @@ def main(args=None):
     rclpy.shutdown()
 
 if __name__ == '__main__':
-    main() 
+    main()
