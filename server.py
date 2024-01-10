@@ -1,83 +1,74 @@
-# Importing necessary libraries
-import asyncio  # Provides for writing single-threaded concurrent code using coroutines
-import websockets  # Provides full-featured and easy to use WebSocket implementation
-import json  # Provides JSON encoding and decoding functionality
-import paho.mqtt.client as mqtt  # Provides client functionalities for interacting with MQTT brokers
+import asyncio
+import websockets
+import json
+import paho.mqtt.client as mqtt
+import logging
 
-# Configuration for connecting to an MQTT broker
-MQTT_BROKER = 'localhost'  # Address of the MQTT broker
-MQTT_PORT = 1883  # Port number the MQTT broker is listening on
-MQTT_TOPIC = 'xyz_topic'  # The MQTT topic to publish messages to
+# Initialize logging
+logging.basicConfig(level=logging.INFO)
+
+# Configuration for MQTT
+MQTT_BROKER = 'localhost'
+MQTT_PORT = 1883
+MQTT_TOPIC = 'xyz_topic'
 
 # Initialize MQTT Client
 mqtt_client = mqtt.Client()
 
 def on_connect(client, userdata, flags, rc):
-    # Callback for when the client receives a CONNACK response from the server.
     if rc == 0:
-        # Successful connection
-        print(f"Connected to MQTT Broker at {MQTT_BROKER}:{MQTT_PORT}")
+        logging.info(f"Connected to MQTT Broker at {MQTT_BROKER}:{MQTT_PORT}")
     else:
-        # Unsuccessful connection, rc is the error code
-        print(f"Failed to connect to MQTT Broker, return code {rc}")
+        logging.error(f"Failed to connect to MQTT Broker, return code {rc}")
 
-# Assign the callback function for MQTT connection
 mqtt_client.on_connect = on_connect
 
-# Try to connect to the MQTT broker
+# Connect to MQTT Broker
 try:
-    mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)  # Connect to MQTT broker
+    mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
 except Exception as e:
-    print(f"Could not connect to MQTT Broker: {e}")  # Print error if connection fails
-    exit()  # Exit the script if connection cannot be established
+    logging.error(f"Could not connect to MQTT Broker: {e}")
+    mqtt_client.loop_stop()
+    raise  # Reraise exception to exit script
 
-# Start the MQTT client's network loop
 mqtt_client.loop_start()
 
-# Function to apply limits to the XYZ values
-def limit_xyz(xyz):
-    # Define limits for each of x, y, and z values
-    x_limit = (0, 100)
-    y_limit = (0, 100)
-    z_limit = (0, 100)
+def limit_data(data):
+    limits = [(-1, 1)] * 6  # Same limit for x, y, z, a, b, c
+    return [max(min(val, lim[1]), lim[0]) for val, lim in zip(data, limits)]
 
-    # Apply the limits to each value
-    x, y, z = xyz
-    x = max(min(x, x_limit[1]), x_limit[0])
-    y = max(min(y, y_limit[1]), y_limit[0])
-    z = max(min(z, z_limit[1]), z_limit[0])
-    
-    return x, y, z  # Return the limited x, y, z values
-
-# Asynchronous handler function for WebSocket connections
 async def handler(websocket, path):
-    print("Server is waiting for client to send data...")
-    async for message in websocket:  # Asynchronously listen for messages
-        try:
-            data = json.loads(message)  # Attempt to parse message as JSON
-            xyz = data.get("xyz")  # Extract the 'xyz' data from the message
-            
-            # Validate and process the 'xyz' data
-            if xyz and len(xyz) == 3:
-                limited_xyz = limit_xyz(xyz)  # Apply limits to the 'xyz' values
-                # Publish the limited xyz data to the MQTT topic
-                mqtt_client.publish(MQTT_TOPIC, json.dumps({"limited_xyz": limited_xyz}))
-                print(f"Received and published limited XYZ data: {limited_xyz}")
-            else:
-                print("Invalid data received, expected XYZ array.")
-        except json.JSONDecodeError:
-            # Handle case where message is not valid JSON
-            print("Invalid message format received, expected JSON.")
+    logging.info("Client connected")
+    try:
+        async for message in websocket:
+            try:
+                data = json.loads(message)
+                data_from_socket = data.get("data")
+                
+                if isinstance(data_from_socket, list) and len(data_from_socket) == 6 and all(isinstance(num, (int, float)) for num in data_from_socket):
+                    limited_data = limit_data(data_from_socket)
+                    mqtt_client.publish(MQTT_TOPIC, json.dumps({"limited_xyz": limited_data}))
+                    logging.info(f"Published data: {limited_data}")
+                else:
+                    logging.warning("Invalid data received.")
+            except json.JSONDecodeError:
+                logging.error("Invalid JSON message received.")
+    except websockets.exceptions.ConnectionClosedError as e:
+        logging.warning(f"Connection closed unexpectedly: {e}")
+    except Exception as e:
+        logging.error(f"Unexpected error: {e}")
+    finally:
+        logging.info("Client disconnected")
 
-# Try to start the WebSocket server
+async def main():
+    async with websockets.serve(handler, "localhost", 6789):
+        logging.info("WebSocket Server running on localhost:6789")
+        await asyncio.Future()  # Runs forever
+
 try:
-    # Prepare the WebSocket server to listen on localhost:6789
-    start_server = websockets.serve(handler, "localhost", 6789)
-    # Start and run the server indefinitely
-    asyncio.get_event_loop().run_until_complete(start_server)
-    print("WebSocket Server running on localhost:6789")
-    asyncio.get_event_loop().run_forever()
+    asyncio.run(main())
+except KeyboardInterrupt:
+    logging.info("Server stopped by user")
 except Exception as e:
-    # Print error if the server fails to start
-    print(f"Could not start WebSocket server: {e}")
-    mqtt_client.loop_stop()  # Stop the MQTT client loop if the server fails to start
+    logging.critical(f"Server stopped due to an error: {e}")
+    mqtt_client.loop_stop()
