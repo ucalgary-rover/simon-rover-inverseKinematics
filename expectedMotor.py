@@ -3,7 +3,6 @@ import ikpy.chain
 import math
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String
 from std_msgs.msg import Float32MultiArray
 
 ik = None  # Define ik variable at a global level
@@ -22,7 +21,7 @@ def move(x, y, z, x2, y2, z2):
 class MyNode(Node):
     def __init__(self):
         super().__init__("Expected_Motor_Angles_publisher")
-        self.publisher_ = self.create_publisher(String, 'expected_motor_angles', 10)
+        self.publisher_ = self.create_publisher(Float32MultiArray, 'expected_motor_angles', 10)
         self.timer = self.create_timer(5, self.timer_callback)
 
         #subscribe to other node
@@ -44,9 +43,8 @@ class MyNode(Node):
         global ik
         if ik is not None:
             self.get_logger().info("target pos: %s" % target_position)
-            msg = String()
-            msg.data = str(list(map(lambda r: math.degrees(r), ik.tolist())))
-            msg.data += "\n"
+            msg = Float32MultiArray()
+            msg.data = list(map(lambda r: math.degrees(r), ik.tolist()))
             self.publisher_.publish(msg)
             self.get_logger().info('Publishing: "%s"' % msg.data)
 
