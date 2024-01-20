@@ -34,7 +34,13 @@ ros_node = MyROSNode()
 
 # Initialize MQTT Client
 mqtt_client = mqtt.Client()
-
+async def send_periodic_pings(websocket):
+    while True:
+        await asyncio.sleep(10)  # Send a ping every 10 seconds
+        try:
+            await websocket.ping()
+        except websockets.exceptions.ConnectionClosed:
+            break
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         logging.info(f"Connected to MQTT Broker at {MQTT_BROKER}:{MQTT_PORT}")
@@ -60,6 +66,8 @@ def limit_data(data):
 async def handler(websocket, path):
     logging.info("Client connected")
     try:
+        ping_task = asyncio.create_task(send_periodic_pings(websocket))
+
         async for message in websocket:
             try:
                 data = json.loads(message)
@@ -79,6 +87,7 @@ async def handler(websocket, path):
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
     finally:
+        ping_task.cancel()  # Cancel ping task when the connection is closed
         logging.info("Client disconnected")
 
 async def main():

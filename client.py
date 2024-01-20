@@ -29,40 +29,43 @@ def display_menu(values):
 
 async def send_keepalive_ping(websocket):
     while True:
-        await asyncio.sleep(10)  # Send a ping every 10 seconds
-        await websocket.ping()
+        await asyncio.sleep(5)  # Send a ping every 5 seconds
+        if websocket.open:
+            await websocket.ping()
 
-async def send_data():
-    async with websockets.connect(uri) as websocket:
-        # Start the keepalive task
-        keepalive_task = asyncio.create_task(send_keepalive_ping(websocket))
+async def send_data(websocket, values):
+    display_menu(values)
+    choice = input("Select an option to edit, send, or exit: ").upper()
 
-        values = [0, 0, 0, 0, 0, 0]
-        while True:
-            display_menu(values)
-            choice = input("Select an option to edit, send, or exit: ").upper()
-
-            if choice in ['X', 'Y', 'Z', 'YAW', 'ROLL', 'PITCH']:
-                index = ['X', 'Y', 'Z', 'YAW', 'ROLL', 'PITCH'].index(choice)
-                values[index] = get_input(f"Enter new value for {choice}: ")
-            elif choice == 'SEND':
-                message = json.dumps({"data": values})
-                await websocket.send(message)
-                print("Data sent to server")
-            elif choice == 'EXIT':
-                print("Exiting program.")
-                break
-            else:
-                print("Invalid choice, please select a valid option.")
-
-        # Cancel the keepalive task when exiting
-        keepalive_task.cancel()
+    if choice in ['X', 'Y', 'Z', 'YAW', 'ROLL', 'PITCH']:
+        index = ['X', 'Y', 'Z', 'YAW', 'ROLL', 'PITCH'].index(choice)
+        values[index] = get_input(f"Enter new value for {choice}: ")
+    elif choice == 'SEND':
+        message = json.dumps({"data": values})
+        await websocket.send(message)
+        print("Data sent to server")
+    elif choice == 'EXIT':
+        return False
+    else:
+        print("Invalid choice, please select a valid option.")
+    return True
 
 async def main():
-    try:
-        await send_data()
-    except Exception as e:
-        print(f"Could not connect to WebSocket server: {e}")
-        # Implement reconnection logic or exit based on your requirement
+    values = [0, 0, 0, 0, 0, 0]
+    while True:
+        try:
+            async with websockets.connect(uri) as websocket:
+                # Start the keepalive task
+                keepalive_task = asyncio.create_task(send_keepalive_ping(websocket))
+
+                continue_communication = True
+                while continue_communication:
+                    continue_communication = await send_data(websocket, values)
+
+                keepalive_task.cancel()
+                break  # Exit the loop if 'EXIT' is chosen
+        except Exception as e:
+            print(f"Connection lost. Attempting to reconnect: {e}")
+            await asyncio.sleep(5)  # Wait for 5 seconds before trying to reconnect
 
 asyncio.run(main())
