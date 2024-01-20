@@ -22,7 +22,7 @@ async def send_data():
     # Function to display the menu
     def display_menu(values):
         print("\nCurrent values:")
-        labels = ['X', 'Y', 'Z', 'A', 'B', 'C']
+        labels = ['X', 'Y', 'Z', 'Yaw', 'Roll', 'Pitch']
         for i, (label, value) in enumerate(zip(labels, values)):
             print(f"{label}. {label}: {value}")
         print("Send. Send data")
@@ -39,8 +39,8 @@ async def send_data():
                 display_menu(values)
                 choice = input("Select an option to edit, send, or exit: ").upper()
 
-                if choice in ['X', 'Y', 'Z', 'A', 'B', 'C']:
-                    index = ['X', 'Y', 'Z', 'A', 'B', 'C'].index(choice)
+                if choice in ['X', 'Y', 'Z', 'Yaw', 'Roll', 'Pitch']:
+                    index = ['X', 'Y', 'Z', 'Yaw', 'Roll', 'Pitch'].index(choice)
                     values[index] = get_input(f"Enter new value for {choice}: ")
                 elif choice == 'SEND':
                     # Convert the data to a JSON formatted string and send it

@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 # Configuration for MQTT
 MQTT_BROKER = 'localhost'
 MQTT_PORT = 1883
-MQTT_TOPIC = 'xyz_topic'
+MQTT_TOPIC = 'goal_position'
 
 # Initialize ROS 2
 rclpy.init()
@@ -96,3 +96,5 @@ except Exception as e:
 finally:
     rclpy.shutdown()
 
+if __name__ == '__main__':
+    main()
