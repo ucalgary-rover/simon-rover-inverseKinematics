@@ -31,8 +31,10 @@ async def send_keepalive_ping(websocket):
     while True:
         await asyncio.sleep(5)  # Send a ping every 5 seconds
         if websocket.open:
-            await websocket.ping()
-
+            try:
+                await websocket.ping()
+            except websockets.exceptions.ConnectionClosed:
+                break
 async def send_data(websocket, values):
     display_menu(values)
     choice = input("Select an option to edit, send, or exit: ").upper()

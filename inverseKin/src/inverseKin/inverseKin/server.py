@@ -67,8 +67,20 @@ async def handler(websocket, path):
     logging.info("Client connected")
     try:
         ping_task = asyncio.create_task(send_periodic_pings(websocket))
+        last_message_time = asyncio.get_event_loop().time()
 
+        async def timeout_handler():
+            timeout = 30  # 30 seconds timeout
+            while True:
+                await asyncio.sleep(1)
+                if asyncio.get_event_loop().time() - last_message_time > timeout:
+                    logging.warning("Client timed out")
+                    await websocket.close()
+                    break
+
+        timeout_task = asyncio.create_task(timeout_handler())
         async for message in websocket:
+            last_message_time = asyncio.get_event_loop().time()
             try:
                 data = json.loads(message)
                 data_from_socket = data.get("data")
@@ -88,6 +100,7 @@ async def handler(websocket, path):
         logging.error(f"Unexpected error: {e}")
     finally:
         ping_task.cancel()  # Cancel ping task when the connection is closed
+        timeout_task.cancel()
         logging.info("Client disconnected")
 
 async def main():
