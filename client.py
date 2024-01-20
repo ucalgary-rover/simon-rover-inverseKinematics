@@ -57,17 +57,16 @@ async def main():
     while True:
         try:
             async with websockets.connect(uri) as websocket:
-                # Start the keepalive task
                 keepalive_task = asyncio.create_task(send_keepalive_ping(websocket))
-
                 continue_communication = True
                 while continue_communication:
                     continue_communication = await send_data(websocket, values)
-
                 keepalive_task.cancel()
-                break  # Exit the loop if 'EXIT' is chosen
+        except websockets.exceptions.ConnectionClosed as e:
+            print(f"Connection closed, reason: {e}, attempting to reconnect...")
+            await asyncio.sleep(5)
         except Exception as e:
-            print(f"Connection lost. Attempting to reconnect: {e}")
-            await asyncio.sleep(5)  # Wait for 5 seconds before trying to reconnect
+            print(f"Unexpected error: {e}, trying to reconnect...")
+            await asyncio.sleep(5)
 
 asyncio.run(main())

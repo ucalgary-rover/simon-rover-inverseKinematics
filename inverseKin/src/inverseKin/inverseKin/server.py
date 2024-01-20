@@ -70,7 +70,7 @@ async def handler(websocket, path):
         last_message_time = asyncio.get_event_loop().time()
 
         async def timeout_handler():
-            timeout = 30  # 30 seconds timeout
+            timeout = 30
             while True:
                 await asyncio.sleep(1)
                 if asyncio.get_event_loop().time() - last_message_time > timeout:
@@ -99,10 +99,9 @@ async def handler(websocket, path):
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
     finally:
-        ping_task.cancel()  # Cancel ping task when the connection is closed
+        ping_task.cancel()
         timeout_task.cancel()
         logging.info("Client disconnected")
-
 async def main():
     async with websockets.serve(handler, "localhost", 6789):
         logging.info("WebSocket Server running on localhost:6789")
