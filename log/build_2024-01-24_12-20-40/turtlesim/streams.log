@@ -1,0 +1,43 @@
+[0.355s] Invoking command in '/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics/build/turtlesim': CMAKE_PREFIX_PATH=/opt/ros/humble CONDA_PROMPT_MODIFIER=(base) /usr/bin/cmake --build /home/magdy/Documents/MyGithub/simon-rover-inverseKinematics/build/turtlesim -- -j16 -l16
+[0.407s] [35m[1mConsolidate compiler generated dependencies of target turtlesim__rosidl_generator_c[0m
+[0.417s] [  1%] Built target turtlesim__cpp
+[0.423s] [ 11%] Built target turtlesim__rosidl_generator_c
+[0.426s] [ 11%] Built target ament_cmake_python_copy_turtlesim
+[0.429s] [35m[1mConsolidate compiler generated dependencies of target turtlesim__rosidl_typesupport_cpp[0m
+[0.430s] [35m[1mConsolidate compiler generated dependencies of target turtlesim__rosidl_typesupport_introspection_cpp[0m
+[0.430s] [35m[1mConsolidate compiler generated dependencies of target turtlesim__rosidl_typesupport_fastrtps_cpp[0m
+[0.434s] [35m[1mConsolidate compiler generated dependencies of target turtlesim__rosidl_typesupport_c[0m
+[0.434s] [35m[1mConsolidate compiler generated dependencies of target turtlesim__rosidl_typesupport_introspection_c[0m
+[0.435s] [35m[1mConsolidate compiler generated dependencies of target turtlesim__rosidl_typesupport_fastrtps_c[0m
+[0.453s] [ 31%] Built target turtlesim__rosidl_typesupport_c
+[0.453s] [ 31%] Built target turtlesim__rosidl_typesupport_introspection_c
+[0.457s] [ 61%] Built target turtlesim__rosidl_typesupport_fastrtps_cpp
+[0.457s] [ 61%] Built target turtlesim__rosidl_typesupport_cpp
+[0.457s] [ 61%] Built target turtlesim__rosidl_typesupport_introspection_cpp
+[0.465s] [ 71%] Built target turtlesim__rosidl_typesupport_fastrtps_c
+[0.470s] [35m[1mConsolidate compiler generated dependencies of target draw_square[0m
+[0.470s] [35m[1mConsolidate compiler generated dependencies of target mimic[0m
+[0.470s] [35m[1mConsolidate compiler generated dependencies of target turtle_teleop_key[0m
+[0.472s] [35m[1mConsolidate compiler generated dependencies of target turtlesim_node[0m
+[0.488s] [ 71%] Built target turtlesim
+[0.494s] [ 77%] Built target mimic
+[0.494s] [ 77%] Built target turtle_teleop_key
+[0.494s] [ 77%] Built target draw_square
+[0.513s] [ 79%] [34m[1mGenerating Python code for ROS interfaces[0m
+[0.513s] [ 84%] Built target turtlesim_node
+[0.555s] Traceback (most recent call last):
+[0.555s]   File "/opt/ros/humble/share/rosidl_generator_py/cmake/../../../lib/rosidl_generator_py/rosidl_generator_py", line 8, in <module>
+[0.556s]     from rosidl_generator_py import generate_py
+[0.556s] ImportError: cannot import name 'generate_py' from 'rosidl_generator_py' (/opt/ros/humble/local/lib/python3.10/dist-packages/rosidl_generator_py/__init__.py)
+[0.563s] gmake[2]: *** [turtlesim__py/CMakeFiles/turtlesim__py.dir/build.make:121: rosidl_generator_py/turtlesim/_turtlesim_s.ep.rosidl_typesupport_fastrtps_c.c] Error 1
+[0.563s] gmake[1]: *** [CMakeFiles/Makefile2:706: turtlesim__py/CMakeFiles/turtlesim__py.dir/all] Error 2
+[0.563s] gmake[1]: *** Waiting for unfinished jobs....
+[0.712s] running egg_info
+[0.713s] writing turtlesim.egg-info/PKG-INFO
+[0.714s] writing dependency_links to turtlesim.egg-info/dependency_links.txt
+[0.714s] writing top-level names to turtlesim.egg-info/top_level.txt
+[0.718s] reading manifest file 'turtlesim.egg-info/SOURCES.txt'
+[0.719s] writing manifest file 'turtlesim.egg-info/SOURCES.txt'
+[0.789s] [ 84%] Built target ament_cmake_python_build_turtlesim_egg
+[0.791s] gmake: *** [Makefile:146: all] Error 2
+[0.796s] Invoked command in '/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics/build/turtlesim' returned '2': CMAKE_PREFIX_PATH=/opt/ros/humble CONDA_PROMPT_MODIFIER=(base) /usr/bin/cmake --build /home/magdy/Documents/MyGithub/simon-rover-inverseKinematics/build/turtlesim -- -j16 -l16

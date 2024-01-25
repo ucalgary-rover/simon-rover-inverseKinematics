@@ -1,0 +1,2 @@
+Invoking command in '/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics/build/turtlesim': CMAKE_PREFIX_PATH=/opt/ros/humble CONDA_PROMPT_MODIFIER=(base) /usr/bin/cmake --build /home/magdy/Documents/MyGithub/simon-rover-inverseKinematics/build/turtlesim -- -j16 -l16
+Invoked command in '/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics/build/turtlesim' returned '2': CMAKE_PREFIX_PATH=/opt/ros/humble CONDA_PROMPT_MODIFIER=(base) /usr/bin/cmake --build /home/magdy/Documents/MyGithub/simon-rover-inverseKinematics/build/turtlesim -- -j16 -l16

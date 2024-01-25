@@ -1,72 +1,104 @@
-import asyncio
-import websockets
+import threading
+import time
+import websocket
 import json
+import curses
 
-# The URI of the WebSocket server
-uri = "ws://localhost:6789"
+# Initialize variables
+x, y, z = 0, 0, 0
+pitch, yaw, roll = 0, 0, 0
+lock = threading.Lock()
+is_running = True
 
-# Function to get input from the user
-def get_input(prompt):
-    try:
-        integer = int(input(prompt))  # Get and return the input value
-        if -1 <= integer <= 1:
-            return integer
-        else:
-            print("\033[91m\n++++++Invalid input, please enter a number between -1 to 1++++++\n\033[0m")
-            return get_input(prompt)
-    except ValueError:
-        print("\033[91m\n++++++Invalid input, please enter a number.++++++\n\033[0m")
-        return get_input(prompt)
+def display_values(stdscr):
+    stdscr.clear()
+    stdscr.addstr("Control the values using keyboard keys. Press 'ESC' to exit.\n")
+    stdscr.addstr(f'X: {x:.2f} Y: {y:.2f} Z: {z:.2f} Pitch: {pitch:.2f} Yaw: {yaw:.2f} Roll: {roll:.2f}\n')
+    stdscr.refresh()
 
-# Function to display the menu
-def display_menu(values):
-    print("\nCurrent values:")
-    labels = ['X', 'Y', 'Z', 'Yaw', 'Roll', 'Pitch']
-    for i, (label, value) in enumerate(zip(labels, values)):
-        print(f"{label}: {value}")
-    print("Send. Send data")
-    print("Exit. Exit")
+def clamp(value, min_value, max_value):
+    return max(min(value, max_value), min_value)
 
-async def send_keepalive_ping(websocket):
-    while True:
-        await asyncio.sleep(5)  # Send a ping every 5 seconds
-        if websocket.open:
-            try:
-                await websocket.ping()
-            except websockets.exceptions.ConnectionClosed:
-                break
-async def send_data(websocket, values):
-    display_menu(values)
-    choice = input("Select an option to edit, send, or exit: ").upper()
+def update_values(stdscr):
+    global x, y, z, pitch, yaw, roll, is_running
+    stdscr.nodelay(True)
 
-    if choice in ['X', 'Y', 'Z', 'YAW', 'ROLL', 'PITCH']:
-        index = ['X', 'Y', 'Z', 'YAW', 'ROLL', 'PITCH'].index(choice)
-        values[index] = get_input(f"Enter new value for {choice}: ")
-    elif choice == 'SEND':
-        message = json.dumps({"data": values})
-        await websocket.send(message)
-        print("Data sent to server")
-    elif choice == 'EXIT':
-        return False
-    else:
-        print("Invalid choice, please select a valid option.")
-    return True
+    key_actions = {
+        'w': lambda: assign('y', y + 0.01),
+        's': lambda: assign('y', y - 0.01),
+        'a': lambda: assign('x', x - 0.01),
+        'd': lambda: assign('x', x + 0.01),
+        'o': lambda: assign('roll', roll + 0.01),
+        'u': lambda: assign('roll', roll - 0.01),
+        'q': lambda: assign('z', z + 0.01),
+        'e': lambda: assign('z', z - 0.01),
+        'i': lambda: assign('pitch', pitch + 0.01),
+        'k': lambda: assign('pitch', pitch - 0.01),
+        'j': lambda: assign('yaw', yaw - 0.01),
+        'l': lambda: assign('yaw', yaw + 0.01),
+    }
 
-async def main():
-    values = [0, 0, 0, 0, 0, 0]
-    while True:
+    while is_running:
         try:
-            async with websockets.connect(uri) as websocket:
-                keepalive_task = asyncio.create_task(send_keepalive_ping(websocket))
-                continue_communication = True
-                while continue_communication:
-                    continue_communication = await send_data(websocket, values)
-                keepalive_task.cancel()
-        except websockets.exceptions.ConnectionClosed as e:
-            print(f"Connection closed, reason: {e}, attempting to reconnect...")
-            await asyncio.sleep(5)
+            key = stdscr.getkey()
+            if key == '\x1b':  # ESC key for exit
+                is_running = False
+            elif key in key_actions:
+                key_actions[key]()
+                display_values(stdscr)
         except Exception as e:
-            print(f"Unexpected error: {e}, trying to reconnect...")
-            await asyncio.sleep(5)
+            pass
 
-asyncio.run(main())
+def assign(var_name, value):
+    global x, y, z, pitch, yaw, roll
+    if var_name == 'x':
+        x = clamp(value, -1, 1)
+    elif var_name == 'y':
+        y = clamp(value, -1, 1)
+    elif var_name == 'z':
+        z = clamp(value, -1, 1)
+    elif var_name == 'pitch':
+        pitch = clamp(value, -1, 1)
+    elif var_name == 'yaw':
+        yaw = clamp(value, -1, 1)
+    elif var_name == 'roll':
+        roll = clamp(value, -1, 1)
+
+# Function to handle data sending
+def send_data(ws):
+    global x, y, z, pitch, yaw, roll
+    while is_running:
+        try:
+            with lock:
+                data = {
+                    "data": [x, y, z, pitch, yaw, roll]
+                }
+            ws.send(json.dumps(data))
+        except websocket.WebSocketConnectionClosedException:
+            print("WebSocket connection closed. Attempting to reconnect...")
+            time.sleep(5)
+            start_websocket()  # Attempt to reconnect
+            break
+        except Exception as e:
+            print(f"Error in sending data: {e}")
+            break
+        time.sleep(0.1)  # Sending data at 10 Hz
+
+# WebSocket connection
+def start_websocket():
+    uri = "ws://localhost:6789"
+    try:
+        ws = websocket.WebSocketApp(uri, on_open=lambda ws: threading.Thread(target=send_data, args=(ws,)).start())
+        ws.run_forever()
+    except Exception as e:
+        print(f"Error connecting to WebSocket: {e}")
+
+# Start WebSocket thread
+threading.Thread(target=start_websocket, daemon=True).start()
+
+# Start curses application
+curses.wrapper(update_values)
+
+# Clean up after exiting curses
+is_running = False
+print("Exiting application...")
