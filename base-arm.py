@@ -205,7 +205,7 @@ def initialize_motors():
         motors[i].setHubPort(i) 
         motors[i].setOnAttachHandler(onAttach_motor) 
         motors[i].setOnDetachHandler(onDetach) 
-        motors[i].setOnErrorHandler(onError) 
+        motors[i].setOnErrorHandler(onError)
         try: 
             motors[i].openWaitForAttachment(1000) # If having motor connection timout issues, increase this number 
         except: 
