@@ -1,27 +1,104 @@
-import asyncio  # Provides for writing single-threaded concurrent code using coroutines
-import websockets  # Provides full-featured and easy to use WebSocket implementation
-import json  # Provides JSON encoding and decoding functionality
+import threading
+import time
+import websocket
+import json
+import curses
 
-# Asynchronous function to send XYZ data to the server via WebSocket
-async def send_xyz():
-    uri = "ws://localhost:6789"  # The URI of the WebSocket server to connect to
-    
+# Initialize variables
+x, y, z = 0, 0, 0
+pitch, yaw, roll = 0, 0, 0
+lock = threading.Lock()
+is_running = True
+
+def display_values(stdscr):
+    stdscr.clear()
+    stdscr.addstr("Control the values using keyboard keys. Press 'ESC' to exit.\n")
+    stdscr.addstr(f'X: {x:.2f} Y: {y:.2f} Z: {z:.2f} Pitch: {pitch:.2f} Yaw: {yaw:.2f} Roll: {roll:.2f}\n')
+    stdscr.refresh()
+
+def clamp(value, min_value, max_value):
+    return max(min(value, max_value), min_value)
+
+def update_values(stdscr):
+    global x, y, z, pitch, yaw, roll, is_running
+    stdscr.nodelay(True)
+
+    key_actions = {
+        'w': lambda: assign('y', y + 0.01),
+        's': lambda: assign('y', y - 0.01),
+        'a': lambda: assign('x', x - 0.01),
+        'd': lambda: assign('x', x + 0.01),
+        'o': lambda: assign('roll', roll + 0.01),
+        'u': lambda: assign('roll', roll - 0.01),
+        'q': lambda: assign('z', z + 0.01),
+        'e': lambda: assign('z', z - 0.01),
+        'i': lambda: assign('pitch', pitch + 0.01),
+        'k': lambda: assign('pitch', pitch - 0.01),
+        'j': lambda: assign('yaw', yaw - 0.01),
+        'l': lambda: assign('yaw', yaw + 0.01),
+    }
+
+    while is_running:
+        try:
+            key = stdscr.getkey()
+            if key == '\x1b':  # ESC key for exit
+                is_running = False
+            elif key in key_actions:
+                key_actions[key]()
+                display_values(stdscr)
+        except Exception as e:
+            pass
+
+def assign(var_name, value):
+    global x, y, z, pitch, yaw, roll
+    if var_name == 'x':
+        x = clamp(value, -1, 1)
+    elif var_name == 'y':
+        y = clamp(value, -1, 1)
+    elif var_name == 'z':
+        z = clamp(value, -1, 1)
+    elif var_name == 'pitch':
+        pitch = clamp(value, -1, 1)
+    elif var_name == 'yaw':
+        yaw = clamp(value, -1, 1)
+    elif var_name == 'roll':
+        roll = clamp(value, -1, 1)
+
+# Function to handle data sending
+def send_data(ws):
+    global x, y, z, pitch, yaw, roll
+    while is_running:
+        try:
+            with lock:
+                data = {
+                    "data": [x, y, z, pitch, yaw, roll]
+                }
+            ws.send(json.dumps(data))
+        except websocket.WebSocketConnectionClosedException:
+            print("WebSocket connection closed. Attempting to reconnect...")
+            time.sleep(5)
+            start_websocket()  # Attempt to reconnect
+            break
+        except Exception as e:
+            print(f"Error in sending data: {e}")
+            break
+        time.sleep(0.1)  # Sending data at 10 Hz
+
+# WebSocket connection
+def start_websocket():
+    uri = "ws://localhost:6789"
     try:
-        # Establish a connection to the WebSocket server
-        async with websockets.connect(uri) as websocket:
-            # Prompt the user to enter X, Y, and Z values
-            x_value = int(input("Enter x value: "))  # Get X value from user
-            y_value = int(input("Enter y value: "))  # Get Y value from user
-            z_value = int(input("Enter z value: "))  # Get Z value from user
-            xyz_data = [x_value, y_value, z_value]  # Combine the values into a list
-            
-            # Convert the XYZ data to a JSON formatted string and send it
-            message = json.dumps({"xyz": xyz_data})
-            await websocket.send(message)  # Send the message over WebSocket
-            print("Data sent to server")  # Notify user of successful sending
+        ws = websocket.WebSocketApp(uri, on_open=lambda ws: threading.Thread(target=send_data, args=(ws,)).start())
+        ws.run_forever()
     except Exception as e:
-        # If any exceptions occur during connection or sending, print the error
-        print(f"Could not connect to WebSocket server: {e}")
+        print(f"Error connecting to WebSocket: {e}")
 
-# Execute the send_xyz function within the asyncio event loop
-asyncio.run(send_xyz())
+# Start WebSocket thread
+threading.Thread(target=start_websocket, daemon=True).start()
+
+# Start curses application
+curses.wrapper(update_values)
+
+# Clean up after exiting curses
+is_running = False
+print("Exiting application...")

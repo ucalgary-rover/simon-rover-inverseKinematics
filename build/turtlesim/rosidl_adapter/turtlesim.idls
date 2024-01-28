@@ -1,0 +1,8 @@
+/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics/build/turtlesim/rosidl_adapter/turtlesim:action/RotateAbsolute.idl
+/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics/build/turtlesim/rosidl_adapter/turtlesim:msg/Color.idl
+/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics/build/turtlesim/rosidl_adapter/turtlesim:msg/Pose.idl
+/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics/build/turtlesim/rosidl_adapter/turtlesim:srv/Kill.idl
+/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics/build/turtlesim/rosidl_adapter/turtlesim:srv/SetPen.idl
+/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics/build/turtlesim/rosidl_adapter/turtlesim:srv/Spawn.idl
+/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics/build/turtlesim/rosidl_adapter/turtlesim:srv/TeleportAbsolute.idl
+/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics/build/turtlesim/rosidl_adapter/turtlesim:srv/TeleportRelative.idl
