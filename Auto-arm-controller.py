@@ -1,3 +1,8 @@
+# Authour: Aryan Karadia
+
+# based on the code from Joshua Liu
+
+
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float32MultiArray
