@@ -135,7 +135,7 @@ class RoverArmController(Node):
 if __name__ == "__main__":
     try:
         # Motor and device initialization
-        global motors, motorsInfo, claw, VHubSerial_servo, motorsAttached
+        global motors, motorsInfo, claw, motorsAttached
         global baseMotor, shoulderMotor, elbowMotor, wristMotor, wrist1Motor, wrist2Motor
 
         # Create instances for motors
@@ -160,8 +160,6 @@ if __name__ == "__main__":
         # Arrays for motors and their information
         motors = [baseMotor, shoulderMotor, elbowMotor, wristMotor, wrist1Motor, wrist2Motor]
         motorsInfo = [baseInfo, shoulderInfo, ElbowInfo, WristInfo, Wrist1Info, wrist2Info]
-
-        VHubSerial_servo = 697066
         motorsAttached = [False, False, False, False, False, False]
 
         # Initialize RCServo (claw)
