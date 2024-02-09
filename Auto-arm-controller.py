@@ -13,6 +13,25 @@ from Phidget22.Devices.RCServo import *
 import time
 import traceback
 
+
+VHubSerial_motors = 697103
+VHubSerial_servo = 697066
+
+def onAttach_motor(self): 
+    print(" {0} attached!".format(self.getHubPort())) 
+    motorsAttached[self.getHubPort()] = True
+
+def onAttach_encoder(self): 
+    print("Encoder {0} attached!".format(self.getHubPort())) 
+
+def onDetach(self): 
+    print("A motor detached!")
+
+def onError(self,code, description): 
+    print("Code: " + ErrorEventCode.getName(code)) 
+    print("Description: " + str(description)) 
+    print("----------")
+
 class RoverArmController(Node):
     def __init__(self):
         super().__init__('rover_arm_controller')
@@ -34,6 +53,28 @@ class RoverArmController(Node):
         except PhidgetException as ex:
             self.get_logger().error(f"PhidgetException {str(ex.code)} ({ex.description}): {ex.details}")
         print("\nSuccessfully initialized!\n")
+
+    def initialize_motors(): 
+        global motors, motorsInfo
+        for i in range(len(motors)): 
+            motors[i].setDeviceSerialNumber(VHubSerial_motors) 
+            motors[i].setHubPort(i) 
+            motors[i].setOnAttachHandler(onAttach_motor) 
+            motors[i].setOnDetachHandler(onDetach) 
+            motors[i].setOnErrorHandler(onError)
+            try: 
+                motors[i].openWaitForAttachment(1000) # If having motor connection timout issues, increase this number 
+            except: 
+                print(" " + str(i) + " not attached")
+            if (motors[i].getAttached() == True): 
+                motors[i].setControlMode(StepperControlMode.CONTROL_MODE_RUN) 
+                motors[i].setCurrentLimit(motorsInfo[i][0]) 
+                motors[i].setHoldingCurrentLimit(motorsInfo[i][1])
+                motors[i].setRescaleFactor((1/16) * 1.8 * (1/motorsInfo[i][2]) * (1/motorsInfo[i][3])) # (1/16) * Step angle * (1/Gearbox ratio) * (1/Gear ratio) p
+                motors[i].setAcceleration(motorsInfo[i][4])
+                motors[i].setVelocityLimit(0) 
+                motors[i].setEngaged(True) 
+                motors[i].setDataInterval(motors[i].getMinDataInterval())
 
     def actual_callback(self, data):
         # Callback when actual motor angles are received
