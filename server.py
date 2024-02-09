@@ -53,9 +53,11 @@ except Exception as e:
     raise  # Reraise exception to exit script
 
 def limit_data(data):
-    limits = [(-1, 1)] * 6  # Same limit for x, y, z, a, b, c
-    return [max(min(val, lim[1]), lim[0]) for val, lim in zip(data, limits)]
+    limits = [(-1, 1)] * len(data)  # Apply limits based on the length of the input data
+    # Apply limits to the data
+    limited_data = [max(min(val, lim[1]), lim[0]) for val, lim in zip(data, limits)]
 
+    return limited_data
 async def send_periodic_pings(websocket):
     while True:
         await asyncio.sleep(10)  # Send a ping every 10 seconds
@@ -73,21 +75,21 @@ async def handler(websocket, path):
             try:
                 data = json.loads(message)
                 data_from_socket = data.get("data")
-                if isinstance(data_from_socket, list) and len(data_from_socket) == 6 and all(isinstance(num, (int, float)) for num in data_from_socket):
+                if isinstance(data_from_socket, list) and len(data_from_socket) in (2, 6) and all(isinstance(num, (int, float)) for num in data_from_socket):
                     limited_data = limit_data(data_from_socket)
                     mqtt_client.publish(MQTT_TOPIC, json.dumps({"limited_xyz": limited_data}))
-                    ros_node.publish_data(limited_data)  # Publish data using ROS 2
+                    ros_node.publish_data(limited_data)  # Publish the limited data (x, y) or (x, y, z, pitch, yaw, roll)
                     logging.info(f"Published data: {limited_data}")
                 else:
-                    logging.warning("Invalid data received.")
+                    logging.warning("Invalid data received: Data must be a list with 2 or 6 numeric elements.")
             except json.JSONDecodeError:
                 logging.error("Invalid JSON message received.")
     except websockets.exceptions.ConnectionClosedError as e:
         logging.warning(f"Connection closed unexpectedly: {e}")
     finally:
-        ping_task.cancel()  # Cancel ping task when the connection is closed
+        ping_task.cancel()  # Cancel the ping task when the connection is closed
         logging.info("Client disconnected")
-
+        
 def run_mqtt_client():
     mqtt_client.loop_start()
 
