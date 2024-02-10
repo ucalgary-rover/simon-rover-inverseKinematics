@@ -20,7 +20,7 @@ def onPositionChange(encoder, positionChange, timeChange, indexTriggered, **kwar
     print(f"list = {encoder_positions}")
     publish_encoder_values(encoder_positions)
 
-# handling errors, including checking for not attached properly and printing a message and seeing value to 0
+#handling errors, including checking for not attached properly and printing a message and seeing value to 0
 def onError(encoder, code, description, indexTriggered):
     if code == ErrorCode.EPHIDGET_NOTATTACHED:
         print(f"Encoder {indexTriggered} not attached properly. Setting position to 0.")
@@ -33,7 +33,7 @@ def onError(encoder, code, description, indexTriggered):
 #publish encoder values to the 'actual_motor_angles' topic
 def publish_encoder_values(position):
     msg = Float32MultiArray()
-    msg.data = position
+    msg.data = [float(val) for val in position]
     publisher.publish(msg)
     node.get_logger().info(f'Publishing encoder value: {position}')
 
@@ -50,20 +50,18 @@ def main(args=None):
         # going through the ports 1 2 and 3
         for hub_port in range(1, 4):
             encoder = Encoder()
-            encoder.setHubPort(hub_port)
-            encoder.openWaitForAttachment(1000)
-            encoder.setOnPositionChangeHandler(onPositionChange)
-            
-            # TRY THIS CODE (1) OR (2)
-            # (1)
-            # lambda to pass additional parameters to the error handler
-            encoder.setOnErrorHandler(lambda code, desc, idx=hub_port: onError(encoder, code, desc, idx))
-            
-            # (2)
-            encoder.setOnErrorHandler(onError, hub_port=hub_port)
-            
-            encoders.append(encoder)
-            print(f"Encoder {encoder.getHubPort()} Initial Position: {encoder.getPosition()}")
+
+            try:
+                encoder.setHubPort(hub_port)
+                encoder.openWaitForAttachment(1000)
+                encoder.setOnPositionChangeHandler(onPositionChange)
+                encoder.setOnErrorHandler(lambda code, desc, idx=hub_port: onError(encoder, code, desc, idx))
+                encoders.append(encoder)
+                print(f"Encoder {encoder.getHubPort()} Initial Position: {encoder.getPosition()}")
+
+            except PhidgetException as ex:
+                # Handle Phidget exceptions for this encoder
+                print(f"Error initializing Encoder {hub_port}: {ex.details}")
 
         try:
             input("Press Enter to Stop\n")
