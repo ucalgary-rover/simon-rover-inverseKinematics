@@ -36,6 +36,8 @@ ros_node = MyROSNode()
 
 # Initialize MQTT Client
 mqtt_client = mqtt.Client()
+mqtt_client.username_pw_set('magdy', '1234')  # Uncomment and fill if authentication is needed
+
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:

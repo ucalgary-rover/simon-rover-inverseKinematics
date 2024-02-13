@@ -10,6 +10,7 @@ pitch, yaw, roll = 0, 0, 0
 lock = threading.Lock()
 is_running = True
 
+
 def display_values(stdscr):
     stdscr.clear()
     stdscr.addstr("Control the values using keyboard keys. Press 'ESC' to exit.\n")
