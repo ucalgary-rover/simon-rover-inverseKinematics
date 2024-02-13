@@ -1,0 +1,23 @@
+[0.760s] Invoking command in '/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics-1/inverseKin/src/inverseKin': CONDA_PROMPT_MODIFIER=(base) PYTHONPATH=/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics-1/inverseKin/build/inverseKin/prefix_override:/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics-1/inverseKin/install/inverseKin/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/inverseKin build --build-base /home/magdy/Documents/MyGithub/simon-rover-inverseKinematics-1/inverseKin/build/inverseKin/build install --record /home/magdy/Documents/MyGithub/simon-rover-inverseKinematics-1/inverseKin/build/inverseKin/install.log --single-version-externally-managed
+[0.975s] running egg_info
+[0.976s] writing ../../build/inverseKin/inverseKin.egg-info/PKG-INFO
+[0.976s] writing dependency_links to ../../build/inverseKin/inverseKin.egg-info/dependency_links.txt
+[0.976s] writing entry points to ../../build/inverseKin/inverseKin.egg-info/entry_points.txt
+[0.976s] writing requirements to ../../build/inverseKin/inverseKin.egg-info/requires.txt
+[0.976s] writing top-level names to ../../build/inverseKin/inverseKin.egg-info/top_level.txt
+[0.977s] reading manifest file '../../build/inverseKin/inverseKin.egg-info/SOURCES.txt'
+[0.978s] writing manifest file '../../build/inverseKin/inverseKin.egg-info/SOURCES.txt'
+[0.978s] running build
+[0.978s] running build_py
+[0.978s] running install
+[0.979s] /usr/lib/python3/dist-packages/setuptools/command/install.py:34: SetuptoolsDeprecationWarning: setup.py install is deprecated. Use build and pip and other standards-based tools.
+[0.979s]   warnings.warn(
+[0.979s] running install_lib
+[0.980s] running install_data
+[0.980s] running install_egg_info
+[0.981s] removing '/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics-1/inverseKin/install/inverseKin/lib/python3.10/site-packages/inverseKin-0.0.0-py3.10.egg-info' (and everything under it)
+[0.982s] Copying ../../build/inverseKin/inverseKin.egg-info to /home/magdy/Documents/MyGithub/simon-rover-inverseKinematics-1/inverseKin/install/inverseKin/lib/python3.10/site-packages/inverseKin-0.0.0-py3.10.egg-info
+[0.983s] running install_scripts
+[0.997s] Installing server script to /home/magdy/Documents/MyGithub/simon-rover-inverseKinematics-1/inverseKin/install/inverseKin/lib/inverseKin
+[0.998s] writing list of installed files to '/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics-1/inverseKin/build/inverseKin/install.log'
+[1.018s] Invoked command in '/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics-1/inverseKin/src/inverseKin' returned '0': CONDA_PROMPT_MODIFIER=(base) PYTHONPATH=/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics-1/inverseKin/build/inverseKin/prefix_override:/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics-1/inverseKin/install/inverseKin/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/inverseKin build --build-base /home/magdy/Documents/MyGithub/simon-rover-inverseKinematics-1/inverseKin/build/inverseKin/build install --record /home/magdy/Documents/MyGithub/simon-rover-inverseKinematics-1/inverseKin/build/inverseKin/install.log --single-version-externally-managed

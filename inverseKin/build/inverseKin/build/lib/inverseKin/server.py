@@ -72,10 +72,7 @@ async def handler(websocket, path):
         async for message in websocket:
             try:
                 data = json.loads(message)
-                print(data)
                 data_from_socket = data.get("data")
-                print(data_from_socket)
-                
                 if isinstance(data_from_socket, list) and len(data_from_socket) == 6 and all(isinstance(num, (int, float)) for num in data_from_socket):
                     limited_data = limit_data(data_from_socket)
                     mqtt_client.publish(MQTT_TOPIC, json.dumps({"limited_xyz": limited_data}))
