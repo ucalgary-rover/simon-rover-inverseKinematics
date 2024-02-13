@@ -86,7 +86,7 @@ def send_data(ws):
 
 # WebSocket connection
 def start_websocket():
-    uri = "ws://localhost:6789"
+    uri = "ws://10.14.191.192:6789"
     try:
         ws = websocket.WebSocketApp(uri, on_open=lambda ws: threading.Thread(target=send_data, args=(ws,)).start())
         ws.run_forever()

@@ -12,7 +12,7 @@ from std_msgs.msg import Int32MultiArray
 logging.basicConfig(level=logging.INFO)
 
 # Configuration for MQTT
-MQTT_BROKER = 'localhost'
+MQTT_BROKER = '10.14.191.192'
 MQTT_PORT = 1883
 MQTT_TOPIC = 'goal_position'
 
@@ -72,10 +72,7 @@ async def handler(websocket, path):
         async for message in websocket:
             try:
                 data = json.loads(message)
-                print(data)
                 data_from_socket = data.get("data")
-                print(data_from_socket)
-                
                 if isinstance(data_from_socket, list) and len(data_from_socket) == 6 and all(isinstance(num, (int, float)) for num in data_from_socket):
                     limited_data = limit_data(data_from_socket)
                     mqtt_client.publish(MQTT_TOPIC, json.dumps({"limited_xyz": limited_data}))
@@ -100,8 +97,8 @@ def run_ros_node():
     rclpy.shutdown()
 
 async def main_asyncio():
-    async with websockets.serve(handler, "localhost", 6789):
-        logging.info("WebSocket Server running on localhost:6789")
+    async with websockets.serve(handler, "10.14.191.192", 6789):
+        logging.info("WebSocket Server running on 10.14.191.192:6789")
         await asyncio.Future()  # Runs forever
 
 def main():
