@@ -1,7 +1,6 @@
 import asyncio
 import websockets
 import json
-import paho.mqtt.client as mqtt
 import logging
 import threading
 import rclpy
@@ -10,11 +9,6 @@ from std_msgs.msg import Int32MultiArray
 
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
-
-# Configuration for MQTT
-MQTT_BROKER = '10.14.191.192'
-MQTT_PORT = 1883
-MQTT_TOPIC = 'goal_position'
 
 # Initialize ROS 2
 rclpy.init()
@@ -33,24 +27,6 @@ class MyROSNode(Node):
 
 # Create a ROS 2 node
 ros_node = MyROSNode()
-
-# Initialize MQTT Client
-mqtt_client = mqtt.Client()
-
-def on_connect(client, userdata, flags, rc):
-    if rc == 0:
-        logging.info(f"Connected to MQTT Broker at {MQTT_BROKER}:{MQTT_PORT}")
-    else:
-        logging.error(f"Failed to connect to MQTT Broker, return code {rc}")
-
-mqtt_client.on_connect = on_connect
-
-# Connect to MQTT Broker
-try:
-    mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
-except Exception as e:
-    logging.error(f"Could not connect to MQTT Broker: {e}")
-    raise  # Reraise exception to exit script
 
 def limit_data(data):
     limits = [(-1, 1)] * 6  # Same limit for x, y, z, a, b, c
@@ -75,7 +51,6 @@ async def handler(websocket, path):
                 data_from_socket = data.get("data")
                 if isinstance(data_from_socket, list) and len(data_from_socket) == 6 and all(isinstance(num, (int, float)) for num in data_from_socket):
                     limited_data = limit_data(data_from_socket)
-                    mqtt_client.publish(MQTT_TOPIC, json.dumps({"limited_xyz": limited_data}))
                     ros_node.publish_data(limited_data)  # Publish data using ROS 2
                     logging.info(f"Published data: {limited_data}")
                 else:
@@ -88,17 +63,14 @@ async def handler(websocket, path):
         ping_task.cancel()  # Cancel ping task when the connection is closed
         logging.info("Client disconnected")
 
-def run_mqtt_client():
-    mqtt_client.loop_start()
-
 def run_ros_node():
     rclpy.spin(ros_node)
     ros_node.destroy_node()
     rclpy.shutdown()
 
 async def main_asyncio():
-    async with websockets.serve(handler, "10.14.191.192", 6789):
-        logging.info("WebSocket Server running on 10.14.191.192:6789")
+    async with websockets.serve(handler, "localhost", 6789):
+        logging.info("WebSocket Server running on 0.0.0.0")
         await asyncio.Future()  # Runs forever
 
 def main():

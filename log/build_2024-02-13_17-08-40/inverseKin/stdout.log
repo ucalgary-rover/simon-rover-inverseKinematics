@@ -1,0 +1,19 @@
+running egg_info
+writing ../../../build/inverseKin/inverseKin.egg-info/PKG-INFO
+writing dependency_links to ../../../build/inverseKin/inverseKin.egg-info/dependency_links.txt
+writing entry points to ../../../build/inverseKin/inverseKin.egg-info/entry_points.txt
+writing requirements to ../../../build/inverseKin/inverseKin.egg-info/requires.txt
+writing top-level names to ../../../build/inverseKin/inverseKin.egg-info/top_level.txt
+reading manifest file '../../../build/inverseKin/inverseKin.egg-info/SOURCES.txt'
+writing manifest file '../../../build/inverseKin/inverseKin.egg-info/SOURCES.txt'
+running build
+running build_py
+running install
+running install_lib
+running install_data
+running install_egg_info
+removing '/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics-1/install/inverseKin/lib/python3.10/site-packages/inverseKin-0.0.0-py3.10.egg-info' (and everything under it)
+Copying ../../../build/inverseKin/inverseKin.egg-info to /home/magdy/Documents/MyGithub/simon-rover-inverseKinematics-1/install/inverseKin/lib/python3.10/site-packages/inverseKin-0.0.0-py3.10.egg-info
+running install_scripts
+Installing server script to /home/magdy/Documents/MyGithub/simon-rover-inverseKinematics-1/install/inverseKin/lib/inverseKin
+writing list of installed files to '/home/magdy/Documents/MyGithub/simon-rover-inverseKinematics-1/build/inverseKin/install.log'
