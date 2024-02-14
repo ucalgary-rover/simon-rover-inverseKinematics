@@ -40,17 +40,27 @@ async def handler(websocket, path):
     finally:
         logging.info("Client disconnected")
 
-async def main():
-    async with websockets.serve(handler, "localhost", 6789):
-        logging.info("WebSocket Server running on localhost:6789")
-        await asyncio.Future()
-
 def run_ros_node():
     rclpy.spin(ros_node)
     ros_node.destroy_node()
     rclpy.shutdown()
 
-if __name__ == '__main__':
+async def main_asyncio():
+    async with websockets.serve(handler, "10.13.166.62", 6789):
+        logging.info("WebSocket Server running on 10.13.166.62")
+        await asyncio.Future()  # Runs forever
+
+def main():
+    # Run ROS node
     ros_thread = threading.Thread(target=run_ros_node, daemon=True)
     ros_thread.start()
-    asyncio.run(main())
+
+    # Run asyncio event loop in a separate thread
+    asyncio_thread = threading.Thread(target=lambda: asyncio.run(main_asyncio()), daemon=True)
+    asyncio_thread.start()
+
+    ros_thread.join()
+    asyncio_thread.join()
+
+if __name__ == '__main__':
+    main()

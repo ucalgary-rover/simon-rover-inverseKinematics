@@ -82,7 +82,7 @@ def send_data(ws):
         time.sleep(0.1)  # Sending data at 10 Hz
 
 def start_websocket():
-    uri = "ws://localhost:6789"
+    uri = "ws://10.13.166.62:6789"
     ws = websocket.WebSocketApp(uri, on_open=lambda ws: threading.Thread(target=send_data, args=(ws,)).start())
     ws.run_forever()
 

@@ -7,10 +7,8 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Int32MultiArray
 
-# Initialize logging
 logging.basicConfig(level=logging.INFO)
 
-# Initialize ROS 2
 rclpy.init()
 
 class MyROSNode(Node):
@@ -19,48 +17,27 @@ class MyROSNode(Node):
         self.publisher = self.create_publisher(Int32MultiArray, 'goal_position', 10)
 
     def publish_data(self, data):
-        int_data = [int(val * 100) for val in data]  # Example: scale and convert to int
+        int_data = [int(val * 100) for val in data]
         msg = Int32MultiArray()
         msg.data = int_data
         self.publisher.publish(msg)
         self.get_logger().info(f'Publishing: {msg.data}')
 
-# Create a ROS 2 node
 ros_node = MyROSNode()
-
-def limit_data(data):
-    limits = [(-1, 1)] * 6  # Same limit for x, y, z, a, b, c
-    return [max(min(val, lim[1]), lim[0]) for val, lim in zip(data, limits)]
-
-async def send_periodic_pings(websocket):
-    while True:
-        await asyncio.sleep(10)  # Send a ping every 10 seconds
-        try:
-            await websocket.ping()
-        except websockets.exceptions.ConnectionClosed:
-            break
 
 async def handler(websocket, path):
     logging.info("Client connected")
-    ping_task = asyncio.create_task(send_periodic_pings(websocket))
-    
     try:
         async for message in websocket:
-            try:
-                data = json.loads(message)
-                data_from_socket = data.get("data")
-                if isinstance(data_from_socket, list) and len(data_from_socket) == 6 and all(isinstance(num, (int, float)) for num in data_from_socket):
-                    limited_data = limit_data(data_from_socket)
-                    ros_node.publish_data(limited_data)  # Publish data using ROS 2
-                    logging.info(f"Published data: {limited_data}")
-                else:
-                    logging.warning("Invalid data received.")
-            except json.JSONDecodeError:
-                logging.error("Invalid JSON message received.")
-    except websockets.exceptions.ConnectionClosedError as e:
-        logging.warning(f"Connection closed unexpectedly: {e}")
+            data = json.loads(message)
+            if 'data' in data and len(data['data']) == 6:
+                ros_node.publish_data(data['data'])
+                logging.info(f"Published data: {data['data']}")
+            else:
+                logging.warning("Invalid data format received.")
+    except Exception as e:
+        logging.error(f"Error in WebSocket connection: {e}")
     finally:
-        ping_task.cancel()  # Cancel ping task when the connection is closed
         logging.info("Client disconnected")
 
 def run_ros_node():
@@ -69,8 +46,8 @@ def run_ros_node():
     rclpy.shutdown()
 
 async def main_asyncio():
-    async with websockets.serve(handler, "localhost", 6789):
-        logging.info("WebSocket Server running on 0.0.0.0")
+    async with websockets.serve(handler, "10.13.166.62", 6789):
+        logging.info("WebSocket Server running on 10.13.166.62")
         await asyncio.Future()  # Runs forever
 
 def main():
