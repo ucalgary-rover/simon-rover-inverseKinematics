@@ -10,6 +10,7 @@ pitch, yaw, roll = 0, 0, 0
 lock = threading.Lock()
 is_running = True
 
+
 def display_values(stdscr):
     stdscr.clear()
     stdscr.addstr("Control the values using keyboard keys. Press 'ESC' to exit.\n")
@@ -18,7 +19,6 @@ def display_values(stdscr):
 
 def clamp(value, min_value, max_value):
     return max(min(value, max_value), min_value)
-
 def update_values(stdscr):
     global x, y, z, pitch, yaw, roll, is_running
     stdscr.nodelay(True)
@@ -48,7 +48,6 @@ def update_values(stdscr):
                 display_values(stdscr)
         except Exception as e:
             pass
-
 def assign(var_name, value):
     global x, y, z, pitch, yaw, roll
     if var_name == 'x':
@@ -63,8 +62,6 @@ def assign(var_name, value):
         yaw = clamp(value, -1, 1)
     elif var_name == 'roll':
         roll = clamp(value, -1, 1)
-
-# Function to handle data sending
 def send_data(ws):
     global x, y, z, pitch, yaw, roll
     while is_running:
@@ -84,21 +81,13 @@ def send_data(ws):
             break
         time.sleep(0.1)  # Sending data at 10 Hz
 
-# WebSocket connection
 def start_websocket():
-    uri = "ws://localhost:6789"
-    try:
-        ws = websocket.WebSocketApp(uri, on_open=lambda ws: threading.Thread(target=send_data, args=(ws,)).start())
-        ws.run_forever()
-    except Exception as e:
-        print(f"Error connecting to WebSocket: {e}")
+    uri = "ws://192.168.1.22:6969"
+    ws = websocket.WebSocketApp(uri, on_open=lambda ws: threading.Thread(target=send_data, args=(ws,)).start())
+    ws.run_forever()
 
-# Start WebSocket thread
 threading.Thread(target=start_websocket, daemon=True).start()
 
-# Start curses application
 curses.wrapper(update_values)
-
-# Clean up after exiting curses
 is_running = False
 print("Exiting application...")
