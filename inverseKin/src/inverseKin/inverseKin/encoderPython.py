@@ -15,6 +15,11 @@ def onPositionChange(encoder, positionChange, timeChange, indexTriggered, **kwar
     encoder_positions[port - 1] = pos
     print(f"list = {encoder_positions}")
 
+
+def get_encoder_positions():
+    return encoder_positions
+
+
 def main(args=None):
     encoders = []
     try:
