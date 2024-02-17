@@ -3,11 +3,13 @@ from Phidget22.PhidgetException import *
 from Phidget22.Devices.Stepper import *
 from Phidget22.Devices.RCServo import *
 from Phidget22.Devices.Encoder import *
-from encoderPython import get_encoder_positions
+# from encoderPython import get_encoder_positions
 import traceback
 
 VHubSerial_motors = 697103
 VHubSerial_servo = 697066
+
+encoder_positions = [0, 0, 0]
 
 # TODO: get actual goal value from inverse kinematics
 global goal
@@ -32,9 +34,16 @@ def onError(self, code, description):
     print("Description: " + str(description))
     print("----------")
 
+def onPositionChange(encoder, positionChange, timeChange, indexTriggered, **kwargs):
+    port = encoder.getHubPort()
+    pos = encoder.getPosition()
+    encoder_positions[port - 1] = pos
+    # print(f"list = {encoder_positions}")
+
 
 def initialize_motors():
     global motors, motorsInfo
+    
     for i in range(len(motors)):
         motors[i].setDeviceSerialNumber(VHubSerial_motors)
         motors[i].setHubPort(i)
@@ -58,7 +67,15 @@ def initialize_motors():
             motors[i].setVelocityLimit(0)
             motors[i].setEngaged(True)
             motors[i].setDataInterval(motors[i].getMinDataInterval())
+            
+    for hub_port in range(0,4):
+        encoder = Encoder()
+        encoder.setHubPort(hub_port)
+        encoder.openWaitForAttachment(1000)
+        encoder.setOnPositionChangeHandler(onPositionChange) 
+        encoders.append(encoder)
 
+    
 
 def main(args=None):
     try:
