@@ -66,7 +66,6 @@ def main(args=None):
         # Motor and device initialization
         global motors, motorsInfo, claw, motorsAttached
         global baseMotor, shoulderMotor, elbowMotor, wristMotor, wrist1Motor, wrist2Motor
-        global node, publisher, encoders
         # Create instances for motors
         baseMotor = Stepper()
         baseInfo = [1.68, 1.68, 100, 1, 10, 10]
@@ -118,8 +117,17 @@ def main(args=None):
         # for every motor, while the encoder value is not equal to the goal value, move the motor
         for i in range(len(motors)):
             while encoders[i] != goal[i]:
-                motors[i].setTargetPosition(goal[i])
+                motors[i].setVelocityLimit(motorsInfo[i][5])
                 encoders = get_encoder_positions()
+                print(f"Motor {i} encoder value: {encoders[i]} Goal: {goal[i]}")
+
+        print("Goal reached")
+
+        # Close all motors
+        for i in range(len(motors)):
+            motors[i].setEngaged(False)
+
+        print("Motors disengaged")
 
     except PhidgetException as ex:
         # Handle Phidget exceptions
