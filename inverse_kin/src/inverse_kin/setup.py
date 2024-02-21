@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'inverseKin'
+package_name = 'inverse_kin'
 
 setup(
     name=package_name,
@@ -20,10 +20,10 @@ setup(
     tests_require=['pytest'],
     entry_points={
 	    'console_scripts': [
-		'server = inverseKin.server:main',
-		'auto_arm_controller = inverseKin.auto_arm_controller:main',
-		'expectedmotor = inverseKin.expected_motor:main',
-		'encoder1 = inverseKin.encoder1:main'
+		'server = inverse_kin.server:main',
+		'auto_arm_controller = inverse_kin.auto_arm_controller:main',
+		'expectedmotor = inverse_kin.expected_motor:main',
+		'encoder1 = inverse_kin.encoder1:main'
 	    ],
 	},
 
