@@ -105,10 +105,12 @@
     <axis
       xyz="0 -1 0" />
     <limit
-      lower="-3.2"
-      upper="3.2"
+      lower="-0.0867"
+      upper="5.8579"
       effort="200"
-      velocity="3" />
+      velocity="3" 
+      acceleration="1.0"/>
+    <dynamics damping="0.0" friction="0.0" />
   </joint>
   <link
     name="link_2">
@@ -164,9 +166,11 @@
       xyz="0 -1 0" />
     <limit
       lower="-0.3621"
-      upper="5.3019"
+      upper="3.4556"
       effort="200"
-      velocity="3" />
+      velocity="3" 
+      acceleration="1.0"/>
+    <dynamics damping="0.0" friction="0.0" />
   </joint>
   <link
     name="link_3">
@@ -224,7 +228,9 @@
       lower="-0.0185"
       upper="5.3019"
       effort="200"
-      velocity="3" />
+      velocity="3" 
+      acceleration="1.0"/>
+    <dynamics damping="0.0" friction="0.0" />
   </joint>
   <link
     name="link_4">
@@ -282,7 +288,9 @@
       lower="-3.142"
       upper="3.142"
       effort="200"
-      velocity="3" />
+      velocity="3" 
+      acceleration="1.0"/>
+    <dynamics damping="0.0" friction="0.0" />
   </joint>
   <link
     name="link_5">
@@ -340,7 +348,9 @@
       lower="-3.8243"
       upper="0.6827"
       effort="200"
-      velocity="3" />
+      velocity="3" 
+      acceleration="1.0"/>
+    <dynamics damping="0.0" friction="0.0" />
   </joint>
   <link
     name="link_6">
@@ -398,7 +408,9 @@
       lower="-3.142"
       upper="3.142"
       effort="200"
-      velocity="3" />
+      velocity="3" 
+      acceleration="1.0"/>
+    <dynamics damping="0.0" friction="0.0" />
   </joint>
   <link
     name="gripper_1">
@@ -456,7 +468,8 @@
       lower="-0.061"
       upper="0"
       effort="100"
-      velocity="5" />
+      velocity="5" 
+      acceleration="1.0"/>
   </joint>
   <link
     name="gripper_2">
@@ -514,7 +527,8 @@
       lower="0"
       upper="0.061"
       effort="100"
-      velocity="5" />
+      velocity="5" 
+      acceleration="1.0"/>
   </joint>
 
   <transmission name="link_1_trans">
