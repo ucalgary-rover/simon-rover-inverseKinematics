@@ -10,9 +10,9 @@ ik = None  # Define ik variable at a global level
 
 def doIK():
     global ik
-    old_position = ik.copy() if ik is not None else [0.0, 0.0, 0.0, 0.0, 0.0]  # Handling the initial case
-    ik = my_chain.inverse_kinematics(target_position, target_orientation, orientation_mode="Z", initial_position=old_position)
-
+    old_position = ik.copy() if ik is not None else None # Handling the initial case
+    ik = my_chain.inverse_kinematics(target_position, target_orientation, orientation_mode="Z")
+    
 def move(x, y, z, x2, y2, z2):
     global target_position, target_orientation
     target_position = [x, y, z]
@@ -42,10 +42,20 @@ class MyNode(Node):
 
     def timer_callback(self):
         global ik
+        
+        offset = [0.0, 6.746014595031738, -20.746801376342773, -1.0599719285964966, 158.4469451904297, -3.6518921852111816, 0.0, 0.0]
         if ik is not None:
             self.get_logger().info("target pos: %s" % target_position)
             msg = Float32MultiArray()
-            msg.data = list(map(lambda r: math.degrees(r), ik.tolist()))
+            
+            ik_to_degrees = list(map(lambda r: math.degrees(r), ik.tolist()))
+            
+            for i in range(len(ik_to_degrees)):
+                ik_to_degrees[i] = ik_to_degrees[i] - offset[i]
+                ik_to_degrees[i] = float(int(ik_to_degrees[i]))
+                
+                
+            msg.data = ik_to_degrees
             self.publisher_.publish(msg)
             self.get_logger().info('Publishing: "%s"' % msg.data)
 
