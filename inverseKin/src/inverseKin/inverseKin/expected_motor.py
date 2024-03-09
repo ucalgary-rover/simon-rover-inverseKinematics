@@ -10,7 +10,7 @@ ik = None  # Define ik variable at a global level
 
 def doIK():
     global ik
-    old_position = ik.copy() if ik is not None else None  # Handling the initial case
+    old_position = ik.copy() if ik is not None else [0.0, 0.0, 0.0, 0.0, 0.0]  # Handling the initial case
     ik = my_chain.inverse_kinematics(target_position, target_orientation, orientation_mode="Z", initial_position=old_position)
 
 def move(x, y, z, x2, y2, z2):
@@ -56,7 +56,7 @@ class MyNode(Node):
 def main(args=None):
     rclpy.init(args=args)
     global my_chain
-    my_chain = ikpy.chain.Chain.from_urdf_file("/home/roverbase/simon-rover-inverseKinematics/simon-v2-0.urdf", active_links_mask=[False, True, True, True, True, True, False, False])
+    my_chain = ikpy.chain.Chain.from_urdf_file("/home/symasc/simon-rover-inverseKinematics/simon-v2-0.urdf", active_links_mask=[False, True, True, True, True, True, False, False])
 
     pub = MyNode()
     rclpy.spin(pub)

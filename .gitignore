@@ -3,6 +3,6 @@
 /install
 /log
 /venv
-inverse_kin/build
-inverse_kin/install
-inverse_kin/log
+inverseKin/build
+inverseKin/install
+inverseKin/log

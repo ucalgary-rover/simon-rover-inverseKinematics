@@ -46,8 +46,8 @@ def run_ros_node():
     rclpy.shutdown()
 
 async def main_asyncio():
-    async with websockets.serve(handler, "192.168.1.22", 6969):
-        logging.info("WebSocket Server running on 192.168.1.22")
+    async with websockets.serve(handler, "localhost", 6968):
+        logging.info("WebSocket Server running on localhost")
         await asyncio.Future()  # Runs forever
 
 def main():
