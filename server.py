@@ -17,7 +17,7 @@ class MyROSNode(Node):
         self.publisher = self.create_publisher(Int32MultiArray, 'goal_position', 10)
 
     def publish_data(self, data):
-        int_data = [int(val * 100) for val in data]
+        int_data = [int(val * 100) for val in data]  
         msg = Int32MultiArray()
         msg.data = int_data
         self.publisher.publish(msg)
@@ -30,7 +30,7 @@ async def handler(websocket, path):
     try:
         async for message in websocket:
             data = json.loads(message)
-            if 'data' in data and len(data['data']) == 6:
+            if 'data' in data and len(data['data']) == 7:  
                 ros_node.publish_data(data['data'])
                 logging.info(f"Published data: {data['data']}")
             else:
