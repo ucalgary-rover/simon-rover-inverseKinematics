@@ -14,10 +14,15 @@ from Phidget22.Devices.Encoder import *
 import time
 import traceback
 
-
+encoder_file_path = "encoder_positions.txt"
 VHubSerial_motors = 697103
 VHubSerial_servo = 697066
 
+# Function to record encoder positions to a text file
+def record_encoder_positions(encoder_positions):
+    with open(encoder_file_path, "w") as file:
+        for position in encoder_positions:
+            file.write(str(position) + "\n")
 
 def onAttach_motor(self): 
     print(" {0} attached!".format(self.getHubPort())) 
@@ -42,7 +47,7 @@ def onPositionChange(encoder, positionChange, timeChange, indexTriggered, **kwar
     port = encoder.getHubPort()
     pos = encoder.getPosition()
     encoder_positions[port - 1] = pos
-    # print(f"list = {encoder_positions}")
+    record_encoder_positions(encoder_positions)
 
 #handling errors, including checking for not attached properly and printing a message and seeing value to 0
 def onError(encoder, code, description, indexTriggered):
