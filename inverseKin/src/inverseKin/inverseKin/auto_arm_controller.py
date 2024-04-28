@@ -18,6 +18,12 @@ encoder_file_path = "encoder_positions.txt"
 VHubSerial_motors = 697103
 VHubSerial_servo = 697066
 
+# set this with how long it takes the claw to fully close in seconds
+CLAW_TIME_TO_CLOSE = 3
+
+
+# Function to read claw position
+
 # Function to record encoder positions to a text file
 def record_encoder_positions(encoder_positions):
     with open(encoder_file_path, "w") as file:
@@ -92,6 +98,9 @@ class RoverArmController(Node):
         self.clawSpeeds = [100, 80]
         self.isClawMoving = False
 
+        ### TODO: Change this to actual claw value when motor encoder is implemented
+        self.clawPosition = 0
+
         # Subscribers for actual and expected motor angles
         self.subscription_expected = self.create_subscription(Float32MultiArray, 'expected_motor_angles', self.expected_callback, 10)
         # index #: Motor, 0: base motor, 1: elbow, 2: wrist main
@@ -99,6 +108,19 @@ class RoverArmController(Node):
 
         print("\nSuccessfully initialized!\n")
         self.adjust_motors()
+
+    # Function to control the claw given time in seconds
+    def control_claw(self, time_in_seconds):
+        # Calculate the desired position based on the time input
+        desired_position = self.claw_position + (time_in_seconds / CLAW_TIME_TO_CLOSE)
+        # Ensure the desired position is within the valid range [0, 1]
+        desired_position = max(0, min(1, desired_position))
+        # Start moving the claw
+        self.claw.setTargetPosition(desired_position)
+        # Wait for the specified time
+        time.sleep(time_in_seconds)
+        # Update the claw's position
+        self.claw_position = desired_position
 
     def expected_callback(self, data):
         # Callback when expected motor angles are received
