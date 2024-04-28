@@ -1,0 +1,44 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <world name="default">
+    <!-- A global light source -->
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <!-- A ground plane -->
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+
+    <!-- A testing model that includes the Velodyne sensor model -->
+    <model name="my_velodyne">
+      <include>
+        <uri>model://velodyne_hdl32</uri>
+      </include>
+
+      <!-- Adjust the parameters of the Velodyne sensor -->
+      <link name="velodyne_hdl32::top"> 
+        <sensor name="velodyne_hdl32::sensor" type="ray">
+        <ray>
+          <!-- Other sensor parameters here -->
+
+          <!-- Adjust the range parameters -->
+          <range>
+            <!-- Minimum distance of the beam -->
+            <min>0.005</min>
+            <!-- Maximum distance of the beam -->
+            <max>1</max> <!-- Change this value to your desired maximum distance -->
+            <!-- Linear resolution of the beam -->
+            <resolution>0.02</resolution>
+          </range>
+          </ray>
+        </sensor>
+      </link>
+
+      <!-- Attach the plugin to this model -->
+      <plugin name="velodyne_control" filename="libvelodyne_plugin.so"/>
+    </model>
+
+  </world>
+</sdf>
+
