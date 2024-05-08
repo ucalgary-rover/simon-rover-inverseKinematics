@@ -110,17 +110,23 @@ class RoverArmController(Node):
         self.adjust_motors()
 
     # Function to control the claw given time in seconds
-    def control_claw(self, time_in_seconds):
-        # Calculate the desired position based on the time input
-        desired_position = self.claw_position + (time_in_seconds / CLAW_TIME_TO_CLOSE)
-        # Ensure the desired position is within the valid range [0, 1]
-        desired_position = max(0, min(1, desired_position))
-        # Start moving the claw
-        self.claw.setTargetPosition(desired_position)
-        # Wait for the specified time
-        time.sleep(time_in_seconds)
-        # Update the claw's position
-        self.claw_position = desired_position
+    def control_claw(self, desired_position):
+            # Ensure the desired position is within the valid range [0, 1]
+            desired_position = max(0, min(1, desired_position))
+            
+            # Calculate the duration needed to reach the desired position
+            time_in_seconds = abs(desired_position - self.claw_position) * self.CLAW_TIME_TO_CLOSE
+            
+            # Move the claw to the desired position
+            self.isClawMoving = True
+            self.claw.setPosition(desired_position)
+            
+            # Wait for the specified time
+            time.sleep(time_in_seconds)
+            self.isClawMoving = False
+            
+            # Update the claw's position
+            self.claw_position = desired_position
 
     def expected_callback(self, data):
         # Callback when expected motor angles are received
