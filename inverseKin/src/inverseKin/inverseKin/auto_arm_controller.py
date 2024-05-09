@@ -116,13 +116,14 @@ class RoverArmController(Node):
             
             # Calculate the duration needed to reach the desired position
             time_in_seconds = abs(desired_position - self.claw_position) * self.CLAW_TIME_TO_CLOSE
-            
-            # Move the claw to the desired position
+
+            claw.setEngaged(True)
+            claw.setVelocityLimit(100)
+            claw.setAcceleration(100)
             self.isClawMoving = True
-            self.claw.setPosition(desired_position)
-            
-            # Wait for the specified time
+            claw.setTargetPosition(desired_position)
             time.sleep(time_in_seconds)
+            claw.setEngaged(False)
             self.isClawMoving = False
             
             # Update the claw's position
