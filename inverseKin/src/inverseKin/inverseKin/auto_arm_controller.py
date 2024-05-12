@@ -95,7 +95,9 @@ class RoverArmController(Node):
         self.expected_motor_angles = None
         self.motors_powered = False
         self.smoothing = 0.005
-        self.clawSpeeds = [100, 80]
+        # claw speed values positve for opening and negative for closing
+        # clawSpeeds[0] is closing speed, clawSpeeds[1] is opening speed
+        self.clawSpeeds = [-80, 80]
         self.isClawMoving = False
 
         ### TODO: Change this to actual claw value when motor encoder is implemented
@@ -111,18 +113,37 @@ class RoverArmController(Node):
 
     # Function to control the claw given time in seconds
     def control_claw(self, desired_position):
-            # Ensure the desired position is within the valid range [0, 1]
+            # Ensure the desired position is within the valid range [0, 1] (0 is fully closed, 1 is fully open)
             desired_position = max(0, min(1, desired_position))
+
+            # flag to check which direction the claw should move, 1 for opening and 0 for closing
+            direction = None
+            # compare desired position to current position to see which direction to move
+            if desired_position > self.claw_position:
+                direction = 1
+            else:
+                direction = 0
+            
+            # if direction is still none then the claw is already at the desired position
+            if direction is None:
+                return
             
             # Calculate the duration needed to reach the desired position
-            time_in_seconds = abs(desired_position - self.claw_position) * self.CLAW_TIME_TO_CLOSE
+            time_in_seconds = abs(desired_position - self.claw_position) * CLAW_TIME_TO_CLOSE
 
-            claw.setEngaged(True)
-            claw.setVelocityLimit(100)
-            claw.setAcceleration(100)
-            self.isClawMoving = True
-            claw.setTargetPosition(desired_position)
-            time.sleep(time_in_seconds)
+            # Set the claw's speed based on the direction
+            claw.setVelocityLimit(self.clawSpeeds[direction])
+
+            # set acceleration for the claw
+            claw.setAcceleration(10)
+
+            # supply power to the claw motor for time_in_seconds. Can't use setTargetPosition because it's a servo
+            startTime = time.time()
+            while time.time() - startTime < time_in_seconds:
+                claw.setEngaged(True)
+                self.isClawMoving = True
+            
+            # Disengage the claw motor
             claw.setEngaged(False)
             self.isClawMoving = False
             
@@ -140,6 +161,7 @@ class RoverArmController(Node):
         self.get_logger().info(f"expected: {self.expected_motor_angles}")
         self.get_logger().info(f"actual: {[encoders[i].getPosition() for i in range(len(encoders))]}")
         if self.testing_motor_angles is not None:
+            #### TODO: CHANGE THIS TO ACTUAL MOTOR ANGLES WHEN MOTOR ENCODERS ARE IMPLEMENTED
             # ZIPPING WITH TESTING ENCODER VALUES CHANGE WHEN ALL MOTORS HAVE ENCODERS
             for encoder, expected_angle, i in zip(encoders, self.testing_motor_angles, range(len(encoders))):
                 print(f"diff: {abs(encoder.getPosition() - expected_angle)}")
