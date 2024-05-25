@@ -14,10 +14,22 @@ from Phidget22.Devices.Encoder import *
 import time
 import traceback
 
-
+encoder_file_path = "encoder_positions.txt"
 VHubSerial_motors = 697103
 VHubSerial_servo = 697066
+claw_file_path = "claw_position.txt"
 
+# set this with how long it takes the claw to fully close in seconds
+CLAW_TIME_TO_CLOSE = 3
+
+
+# Function to read claw position
+
+# Function to record encoder positions to a text file
+def record_encoder_positions(encoder_positions):
+    with open(encoder_file_path, "w") as file:
+        for position in encoder_positions:
+            file.write(str(position) + "\n")
 
 def onAttach_motor(self): 
     print(" {0} attached!".format(self.getHubPort())) 
@@ -33,7 +45,7 @@ def onError(self,code, description):
     print("Code: " + ErrorEventCode.getName(code)) 
     print("Description: " + str(description)) 
     print("----------")
-    
+
 # Initialize a list for encoder positions
 encoder_positions = [0, 0, 0]
 
@@ -42,9 +54,9 @@ def onPositionChange(encoder, positionChange, timeChange, indexTriggered, **kwar
     port = encoder.getHubPort()
     pos = encoder.getPosition()
     encoder_positions[port - 1] = pos
-    # print(f"list = {encoder_positions}")
+    record_encoder_positions(encoder_positions)
 
-#handling errors, including checking for not attached properly and printing a message and seeing value to 0
+# handling errors, including checking for not attached properly and printing a message and seeing value to 0
 def onError(encoder, code, description, indexTriggered):
     if code == ErrorCode.EPHIDGET_NOTATTACHED:
         print(f"Encoder {indexTriggered} not attached properly. Setting position to 0.")
@@ -53,7 +65,7 @@ def onError(encoder, code, description, indexTriggered):
         print(f"Error in Encoder {indexTriggered}:")
         print(f"Code: {ErrorEventCode.getName(code)}")
         print(f"Description: {description}")
-    
+
 # init motors
 def initialize_motors(): 
     global motors, motorsInfo
@@ -84,8 +96,14 @@ class RoverArmController(Node):
         self.expected_motor_angles = None
         self.motors_powered = False
         self.smoothing = 0.005
-        self.clawSpeeds = [100, 80]
+        # claw speed values positve for opening and negative for closing
+        # clawSpeeds[0] is closing speed, clawSpeeds[1] is opening speed
+        self.clawSpeeds = [-80, 80]
         self.isClawMoving = False
+
+        # get the claw position from the file
+        with open(claw_file_path, "r") as file:
+            self.claw_position = float(file.read())
 
         # Subscribers for actual and expected motor angles
         self.subscription_expected = self.create_subscription(Float32MultiArray, 'expected_motor_angles', self.expected_callback, 10)
@@ -95,6 +113,50 @@ class RoverArmController(Node):
         print("\nSuccessfully initialized!\n")
         self.adjust_motors()
 
+    # Function to control the claw given time in seconds
+    def control_claw(self, desired_position):
+        # Ensure the desired position is within the valid range [0, 1] (0 is fully closed, 1 is fully open)
+        desired_position = max(0, min(1, desired_position))
+
+        # flag to check which direction the claw should move, 1 for opening and 0 for closing
+        direction = None
+        # compare desired position to current position to see which direction to move
+        if desired_position > self.claw_position:
+            direction = 1
+        else:
+            direction = 0
+
+        # if direction is still none then the claw is already at the desired position
+        if direction is None:
+            return
+
+        # Calculate the duration needed to reach the desired position
+        time_in_seconds = (
+            abs(desired_position - self.claw_position) * CLAW_TIME_TO_CLOSE
+        )
+
+        # Set the claw's speed based on the direction
+        claw.setVelocityLimit(self.clawSpeeds[direction])
+
+        # set acceleration for the claw
+        claw.setAcceleration(10)
+
+        # supply power to the claw motor for time_in_seconds. Can't use setTargetPosition because it's a servo
+        startTime = time.time()
+        while time.time() - startTime < time_in_seconds:
+            claw.setEngaged(True)
+            self.isClawMoving = True
+
+        # Disengage the claw motor
+        claw.setEngaged(False)
+        self.isClawMoving = False
+
+        # Update the claw's position
+        self.claw_position = desired_position
+        # Overwrite the claw's position to the file
+        with open(claw_file_path, "w") as file:
+            file.write(str(self.claw_position))
+
     def expected_callback(self, data):
         # Callback when expected motor angles are received
         self.expected_motor_angles = data.data
@@ -102,10 +164,11 @@ class RoverArmController(Node):
         self.adjust_motors()
 
     def adjust_motors(self):
-        # Adjust motors based on actual and expected 
+        # Adjust motors based on actual and expected
         self.get_logger().info(f"expected: {self.expected_motor_angles}")
         self.get_logger().info(f"actual: {[encoders[i].getPosition() for i in range(len(encoders))]}")
         if self.testing_motor_angles is not None:
+            #### TODO: CHANGE THIS TO ACTUAL MOTOR ANGLES WHEN MOTOR ENCODERS ARE IMPLEMENTED
             # ZIPPING WITH TESTING ENCODER VALUES CHANGE WHEN ALL MOTORS HAVE ENCODERS
             for encoder, expected_angle, i in zip(encoders, self.testing_motor_angles, range(len(encoders))):
                 print(f"diff: {abs(encoder.getPosition() - expected_angle)}")
@@ -122,12 +185,11 @@ class RoverArmController(Node):
             motor.setAcceleration(motorsInfo[motorID+1][4])
             motor.setVelocityLimit(motorsInfo[motorID+1][5])
             # motor.setTargetPosition(self.expected_motor_angles[motorID])
-            
+
             print("TEST", self.testing_motor_angles[motorID])
             motor.setEngaged(True)
             self.motors_powered = True
-            
-                
+
             # Wait until the motor reaches the expected angle
             # TODO: WHEN ALL MOTORS HAVE ENCODERS CHANGE "self.testing_motor_angles" TO "self.expected_motor_angles"
             while abs(encoder_positions[motorID] - self.testing_motor_angles[motorID]) > self.tolerance:
@@ -162,7 +224,7 @@ class RoverArmController(Node):
             ENCODER PORT 2 : ELBOW
             ENCODER PORT 3 : WRIST
         '''
-    
+
     def stop_motors(self, motorID):
         motor = motors[motorID]
         try:
@@ -254,4 +316,3 @@ def main(args=None):
 
 if __name__ == "__main__":
     main()
-    

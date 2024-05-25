@@ -7,6 +7,7 @@ from std_msgs.msg import Float32MultiArray
 from std_msgs.msg import Int32MultiArray
 
 ik = None  # Define ik variable at a global level
+encoder_file_path = "/path/to/encoder_position.txt"
 
 def doIK():
     global ik
@@ -17,8 +18,23 @@ def move(x, y, z, x2, y2, z2):
     global target_position, target_orientation
     target_position = [x, y, z]
     target_orientation = [x2, y2, z2]
+    adjust_with_encoder_offsets()
     doIK()
 
+def adjust_with_encoder_offsets():
+    global target_position
+    # Read the last recorded encoder positions
+    encoder_offsets = read_encoder_positions()
+    if encoder_offsets is not None:
+        # Adjust target positions with encoder offsets
+        target_position = [pos + offset for pos, offset in zip(target_position, encoder_offsets)]
+
+def read_encoder_positions():
+    with open(encoder_file_path, "r") as file:
+        lines = file.readlines()
+        encoder_offsets = [float(line.strip()) for line in lines]
+        return encoder_offsets
+    
 class MyNode(Node):
     def __init__(self):
         super().__init__("Expected_Motor_Angles_publisher")
