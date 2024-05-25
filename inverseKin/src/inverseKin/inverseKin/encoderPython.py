@@ -19,17 +19,38 @@ def onPositionChange(encoder, positionChange, timeChange, indexTriggered, **kwar
 def get_encoder_positions():
     return encoder_positions
 
+class SingletonMeta(type):
+    _instances = {}
 
+    def __call__(cls, *args, **kwargs):
+        if 'index' not in kwargs:
+            raise ValueError("A 'index' keyword argument is required.")
+        index = kwargs['index']
+
+        if index not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[index] = instance
+        return cls._instances[index]
+       
+
+class Singleton(metaclass=SingletonMeta):
+    #creating the instance of the encoder
+    def __init__(self, index):
+        self.index = index
+        self.encoder = Encoder()
+        
+        
 def main(args=None):
     encoders = []
     try:
         for hub_port in range(1, 4):
-            encoder = Encoder()
-            encoder.setHubPort(hub_port)
-            encoder.openWaitForAttachment(1000)
-            encoder.setOnPositionChangeHandler(onPositionChange) 
-            encoders.append(encoder)
-            print(f"Encoder {encoder.getHubPort()} Initial Position: {encoder.getPosition()}")
+            enc = Singleton(index = hub_port)
+        
+            enc.encoder.setHubPort(hub_port)
+            enc.encoder.openWaitForAttachment(1000)
+            enc.encoder.setOnPositionChangeHandler(onPositionChange) 
+            encoders.append(enc.encoder)
+            print(f"Encoder {enc.encoder.getHubPort()} Initial Position: {enc.encoder.getPosition()}")
 
         try:
             input("Press Enter to Stop\n")

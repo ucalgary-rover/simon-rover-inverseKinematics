@@ -30,6 +30,26 @@ def onError(encoder, code, description, indexTriggered):
         print(f"Code: {ErrorEventCode.getName(code)}")
         print(f"Description: {description}")
 
+class SingletonMeta(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if 'index' not in kwargs:
+            raise ValueError("A 'index' keyword argument is required.")
+        index = kwargs['index']
+
+        if index not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[index] = instance
+        return cls._instances[index]
+       
+
+class Singleton(metaclass=SingletonMeta):
+    #creating the instance of the encoder
+    def __init__(self, index):
+        self.index = index
+        self.encoder = Encoder()
+        
 #publish encoder values to the 'actual_motor_angles' topic
 def publish_encoder_values(position):
     msg = Float32MultiArray()
@@ -41,6 +61,7 @@ def main(args=None):
     global node, publisher
     encoders = []
 
+    #this try catch loop should be able to capture 
     try:
         # Initialize ROS 2 node
         rclpy.init(args=args)
@@ -49,16 +70,18 @@ def main(args=None):
 
         # going through the ports 1 2 and 3
         for hub_port in range(1, 4):
-            encoder = Encoder()
+            #keda keda u were overwritting
+            enc = Singleton(index = hub_port) #creating an instance, if a hub_port with that value was created it wont reopen it 
 
             try:
-                encoder.setHubPort(hub_port)
-                encoder.openWaitForAttachment(1000)
-                encoder.setEnabled(True)
-                encoder.setOnPositionChangeHandler(onPositionChange)
-                encoder.setOnErrorHandler(lambda code, desc, idx=hub_port: onError(encoder, code, desc, idx))
-                encoders.append(encoder)
-                print(f"Encoder {encoder.getHubPort()} Initial Position: {encoder.getPosition()}")
+                #each call is based on the single instance of the encoder
+                enc.encoder.setHubPort(hub_port)
+                enc.encoder.openWaitForAttachment(1000)
+                enc.encoder.setEnabled(True)
+                enc.encoder.setOnPositionChangeHandler(onPositionChange)
+                enc.encoder.setOnErrorHandler(lambda code, desc, idx=hub_port: onError(enc.encoder, code, desc, idx))
+                encoders.append(enc.encoder)
+                print(f"Encoder {enc.encoder.getHubPort()} Initial Position: {enc.encoder.getPosition()}")
 
             except PhidgetException as ex:
                 # Handle Phidget exceptions for this encoder
